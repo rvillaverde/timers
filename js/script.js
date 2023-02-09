@@ -10,18 +10,46 @@ const START_BUTTON = document.getElementById("start-button");
 const STOP_BUTTON = document.getElementById("stop-button");
 const TIMERS_CONTAINER = document.getElementById("timers-container");
 
+const infinite = function* () {
+  let i = 1;
+
+  while (true) {
+    yield i++;
+  }
+};
+
+const idGenerator = infinite();
+
+const getId = () => {
+  return idGenerator.next().value;
+};
+
 // https://coolors.co/palette/f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0
+// const COLORS = [
+//   "#F72585",
+//   "#B5179E",
+//   "#7209B7",
+//   "#560BAD",
+//   "#480CA8",
+//   "#3A0CA3",
+//   "#3F37C9",
+//   "#4361EE",
+//   "#4895EF",
+//   "#4CC9F0",
+// ];
+
+// https://coolors.co/palette/f94144-f3722c-f8961e-f9844a-f9c74f-90be6d-43aa8b-4d908e-577590-277da1
 const COLORS = [
-  "#F72585",
-  "#B5179E",
-  "#7209B7",
-  "#560BAD",
-  "#480CA8",
-  "#3A0CA3",
-  "#3F37C9",
-  "#4361EE",
-  "#4895EF",
-  "#4CC9F0",
+  "#f94144",
+  "#f3722c",
+  "#f9844a",
+  "#f8961e",
+  "#f9c74f",
+  "#90be6d",
+  "#43aa8b",
+  "#4d908e",
+  "#577590",
+  "#277da1",
 ];
 
 // let wakeLock = null;
@@ -30,10 +58,9 @@ const COLORS = [
 //   // create an async function to request a wake lock
 //   try {
 //     wakeLock = await navigator.wakeLock.request("screen");
-//     statusElem.textContent = "Wake Lock is active!";
+//     console.log("Wake lock is active!");
 //   } catch (err) {
-//     // The Wake Lock request has failed - usually system related, such as battery.
-//     statusElem.textContent = `${err.name}, ${err.message}`;
+//     console.log("Wake lock request failed.", err.name, err.message);
 //   }
 // };
 
@@ -75,6 +102,10 @@ class Queue {
   add = (time) => {
     const timer = new Timer(time);
     this.timers.push(timer);
+  };
+
+  remove = (id) => {
+    this.timers = this.timers.filter((t) => t.id != id);
   };
 
   next = () => {
@@ -123,13 +154,17 @@ class Controller {
     this.renderTimers();
   };
 
+  remove = (timerId) => {
+    this.queue.remove(timerId);
+    this.renderTimers();
+  };
+
   start = () => {
     this.next();
     this.render();
     this.interval = setInterval(this.handleInterval, SECOND);
     START_BUTTON.disabled = true;
     STOP_BUTTON.disabled = false;
-    // document.documentElement.requestFullscreen();
     // lockScreen();
   };
 
@@ -142,7 +177,6 @@ class Controller {
     this.radialProgress.stop();
     START_BUTTON.disabled = false;
     STOP_BUTTON.disabled = true;
-    // document.exitFullscreen();
     // releaseScreen();
   };
 
@@ -187,6 +221,12 @@ class Controller {
 
   render = () => {
     COUNTER.innerHTML = this.queue.current.getCounter(this.counter);
+
+    if (this.queue.current.moreThanOneMinute) {
+      COUNTER.classList.add("over-one-minute");
+    } else {
+      COUNTER.classList.remove("over-one-minute");
+    }
   };
 
   renderTimers = () => {
@@ -198,6 +238,7 @@ class Controller {
 class Timer {
   /** Creates an Timer instance with time in seconds */
   constructor(time) {
+    this.id = getId();
     this.time = time;
     this.moreThanOneMinute = this.time >= MINUTE;
   }
@@ -230,6 +271,7 @@ class Timer {
     const template = document.createElement("div");
 
     template.classList.add("timer");
+    template.setAttribute("data-id", this.id);
     template.innerHTML = `<span style="background-color:${COLORS[index]}">${
       index + 1
     }</span><span>${this.toString()}</span>`;
@@ -273,10 +315,16 @@ const controller = new Controller();
 controller.add(20);
 controller.add(60);
 
+// controller.add(90);
+
 // controller.add(20);
 // controller.add(10);
 // controller.add(30);
 // controller.add(15);
+
+// controller.add(60);
+// controller.add(10);
+// controller.add(40);
 
 START_BUTTON.addEventListener("click", controller.start);
 STOP_BUTTON.addEventListener("click", controller.stop);
