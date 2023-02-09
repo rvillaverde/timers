@@ -27,9 +27,12 @@
     <main>
       <div class="container">
         <div class="controls">
-          <div class="control">
+          <div class="toggle">
             <input checked id="loop-checkbox" type="checkbox" />
-            <label for="loop-checkbox">Loop</label>
+            <label for="loop-checkbox">
+              <span class="indicator"></span>
+              Loop
+            </label>
           </div>
         </div>
 
@@ -42,7 +45,7 @@
           >
             <circle
               id="radial-progress"
-              stroke-width="5"
+              stroke-width="4"
               fill="transparent"
               cx="50"
               cy="50"

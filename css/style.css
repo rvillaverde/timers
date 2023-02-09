@@ -1,4 +1,5 @@
 @import url('./lato.css');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@900&family=Space+Mono&display=swap');
 
 :root {
   --doc-height: 100%;
@@ -11,6 +12,25 @@
   --light-gray: #dee2e6;
   --lighter-gray: #e9ecef;
   --white: #f8f9fa;
+
+  /* --color-primary: #3A0CA3;
+  --color-primary-light: #e9dfff;
+  --color-primary-dark: #270870; */
+
+  /* --color-primary: var(--dark-gray);
+  --color-primary-light: var(--light-gray);
+  --color-primary-dark: var(--black); */
+
+  /* --color-primary: #532b88;
+  --color-primary-light: #c8b1e4;
+  --color-primary-dark: #2f184b; */
+
+  --color-primary: #5b7065;
+  --color-primary-light: #c9d1c8;
+  --color-primary-dark: #304040;
+
+  --font-family-primary: Lato, sans-serif;
+  --font-family-monospace: 'Space Mono', monospace;
 }
 
 html {
@@ -29,7 +49,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
   color: var(--black);
-  font-family: Lato, sans-serif;
+  font-family: var(--font-family-primary);
 }
 
 body {
@@ -44,6 +64,9 @@ body {
 main {
   background-color: var(--white);
   border-radius: 8px;
+  box-shadow: 2px 2px 8px var(--black);
+  display: flex;
+  flex-direction: column;
   height: max-content;
   max-height: 100%;
   max-width: 600px;
@@ -61,15 +84,21 @@ h1 {
 }
 
 .container {
+  align-items: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
 }
 
+@media (min-height: 600px) {
+  .container {
+    overflow: hidden;
+  }
+}
+
 .counter-wrapper {
-  width: 160px;
-  margin: 2rem 0;
+  width: 200px;
+  margin: 4rem 0;
   position: relative;
 }
 
@@ -78,12 +107,16 @@ h1 {
   width: 100%;
   border-radius: 50%;
   /* border: 1px solid var(--black); */
-  font-family: monospace;
-  font-size: 2rem;
+  font-family: var(--font-family-monospace);
+  font-size: 4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2;
+}
+
+.counter.over-one-minute {
+  font-size: 2.6rem;
 }
 
 .radial-progress {
@@ -100,16 +133,124 @@ h1 {
   transition-timing-function: linear;
 }
 
+.toggle {
+  --color-toggle-off: var(--medium-gray);
+  --color-toggle-on: var(--color-primary);
+  position: relative;
+  user-select: none;
+}
+
+.toggle input {
+  display: none;
+}
+
+.toggle label {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.toggle .indicator {
+  aspect-ratio: 2 / 1;
+  background-color: var(--color-toggle-off);
+  border-radius: 1rem;
+  border: 4px solid var(--color-toggle-off);
+  box-sizing: content-box;
+  height: 1rem;
+  margin-right: 0.8rem;
+  position: relative;
+}
+
+.toggle .indicator::after {
+  aspect-ratio: 1 / 1;
+  background-color: var(--white);
+  border-radius: 100%;
+  content: "";
+  display: block;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  transition: transform 200ms ease-out;
+}
+
+.toggle input:not(:checked) ~ label {
+  color: var(--color-toggle-off);
+}
+
+.toggle input:not(:checked) ~ label .indicator::after {
+  background-color: var(--white);
+  transform: translateX(0);
+}
+
+.toggle input:checked ~ label {
+  color: var(--color-toggle-on);
+}
+
+.toggle input:checked ~ label .indicator {
+  background-color: var(--color-toggle-on);
+  border-color: var(--color-toggle-on);
+}
+
+.toggle input:checked ~ label .indicator::after {
+  transform: translateX(100%);
+}
+
 .actions {
   display: flex;
   gap: 1rem
 }
 
+.button {
+  background-color: var(--color-primary);
+  border-radius: 12px;
+  border: none;
+  color: var(--white);
+  font-size: 1rem;
+  letter-spacing: 1px;
+  padding: 0.6rem 2rem;
+  text-transform: uppercase;
+  user-select: none;
+  transition: box-shadow 300ms ease-out, transform 100ms ease-out;
+  transform: scale(1);
+}
+.button:not(:disabled) {
+  cursor: pointer;
+}
+
+.button:disabled {
+  background-color: var(--color-primary-light);
+  pointer-events: none;
+}
+
+.button:not(:disabled):hover {
+  box-shadow: 2px 2px 8px var(--medium-gray);
+}
+
+.button:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 600px) {
+  .actions {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .actions .button {
+    flex-grow: 1;
+  }
+}
+
+
 .timers-container {
-  margin-top: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-top: 2rem;
+  overflow-y: auto;
   width: 100%;
 }
 
@@ -120,14 +261,18 @@ h1 {
 }
 
 .timer span:first-of-type {
-  display: flex;
   align-items: center;
-  justify-content: flex-end;
-  color: white;
-  font-weight: 600;
-  font-size: 1.8rem;
-  width: 1.4rem;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
+  color: white;
+  display: flex;
+  font-size: 1.8rem;
+  font-weight: 600;
+  justify-content: flex-end;
   overflow: hidden;
+  width: 1.4rem;
+}
+
+.timer span:last-of-type {
+  font-family: var(--font-family-monospace);
 }
