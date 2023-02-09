@@ -24,20 +24,6 @@ const getId = () => {
   return idGenerator.next().value;
 };
 
-// https://coolors.co/palette/f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0
-// const COLORS = [
-//   "#F72585",
-//   "#B5179E",
-//   "#7209B7",
-//   "#560BAD",
-//   "#480CA8",
-//   "#3A0CA3",
-//   "#3F37C9",
-//   "#4361EE",
-//   "#4895EF",
-//   "#4CC9F0",
-// ];
-
 // https://coolors.co/palette/f94144-f3722c-f8961e-f9844a-f9c74f-90be6d-43aa8b-4d908e-577590-277da1
 const COLORS = [
   "#f94144",
@@ -52,22 +38,21 @@ const COLORS = [
   "#277da1",
 ];
 
-// let wakeLock = null;
+let wakeLock = null;
 
-// const lockScreen = async () => {
-//   // create an async function to request a wake lock
-//   try {
-//     wakeLock = await navigator.wakeLock.request("screen");
-//     console.log("Wake lock is active!");
-//   } catch (err) {
-//     console.log("Wake lock request failed.", err.name, err.message);
-//   }
-// };
+const lockScreen = async () => {
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    console.log("Wake lock is active!");
+  } catch (err) {
+    console.log("Wake lock request failed.", err.name, err.message);
+  }
+};
 
-// const releaseScreen = () =>
-//   wakeLock.release().then(() => {
-//     wakeLock = null;
-//   });
+const releaseScreen = () =>
+  wakeLock.release().then(() => {
+    wakeLock = null;
+  });
 
 const random = (max, min = 0) => Math.floor(Math.random() * max) + min;
 
@@ -163,21 +148,26 @@ class Controller {
     this.next();
     this.render();
     this.interval = setInterval(this.handleInterval, SECOND);
+
     START_BUTTON.disabled = true;
     STOP_BUTTON.disabled = false;
-    // lockScreen();
+
+    lockScreen();
   };
 
   stop = () => {
     clearInterval(this.interval);
     this.interval = undefined;
+
     this.queue.stop();
     this.updateCounter(0);
     this.render();
     this.radialProgress.stop();
+
     START_BUTTON.disabled = false;
     STOP_BUTTON.disabled = true;
-    // releaseScreen();
+
+    releaseScreen();
   };
 
   handleInterval = () => {
