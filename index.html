@@ -34,6 +34,7 @@
               Loop
             </label>
           </div>
+          <button class="button icon-button" id="open-form-button">+</button>
         </div>
 
         <div class="counter-wrapper">
@@ -59,6 +60,17 @@
           <button class="button" id="stop-button">Stop</button>
         </div>
         <div class="timers-container" id="timers-container"></div>
+      </div>
+
+      <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+          <form id="add-timer-form">
+            <input id="new-timer-input" tabindex="0" type="text" />
+            <button id="add-timer-button" class="button" disabled type="submit">
+              Add
+            </button>
+          </form>
+        </div>
       </div>
     </main>
 

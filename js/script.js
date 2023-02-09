@@ -10,6 +10,12 @@ const START_BUTTON = document.getElementById("start-button");
 const STOP_BUTTON = document.getElementById("stop-button");
 const TIMERS_CONTAINER = document.getElementById("timers-container");
 
+const MODAL_OVERLAY = document.getElementById("modal-overlay");
+const ADD_TIMER_FORM = document.getElementById("add-timer-form");
+const ADD_TIMER_BUTTON = document.getElementById("add-timer-button");
+const NEW_TIMER_INPUT = document.getElementById("new-timer-input");
+const OPEN_FORM_BUTTON = document.getElementById("open-form-button");
+
 const infinite = function* () {
   let i = 1;
 
@@ -137,11 +143,15 @@ class Controller {
   add = (time) => {
     this.queue.add(time);
     this.renderTimers();
+
+    START_BUTTON.disabled = this.queue.size === 0;
   };
 
   remove = (timerId) => {
     this.queue.remove(timerId);
     this.renderTimers();
+
+    START_BUTTON.disabled = this.queue.size === 0;
   };
 
   start = () => {
@@ -151,6 +161,10 @@ class Controller {
 
     START_BUTTON.disabled = true;
     STOP_BUTTON.disabled = false;
+
+    document
+      .querySelectorAll(".timer button")
+      .forEach((b) => (b.disabled = true));
 
     lockScreen();
   };
@@ -166,6 +180,10 @@ class Controller {
 
     START_BUTTON.disabled = false;
     STOP_BUTTON.disabled = true;
+
+    document
+      .querySelectorAll(".timer button")
+      .forEach((b) => (b.disabled = false));
 
     releaseScreen();
   };
@@ -264,7 +282,11 @@ class Timer {
     template.setAttribute("data-id", this.id);
     template.innerHTML = `<span style="background-color:${COLORS[index]}">${
       index + 1
-    }</span><span>${this.toString()}</span>`;
+    }</span>
+    <span class="interval">${this.toString()}</span>
+    <button class="button icon-button" onclick="controller.remove(${
+      this.id
+    })">x</button>`;
 
     return template;
   };
@@ -300,7 +322,84 @@ class RadialProgress {
     this.circumference - (progress / 100) * this.circumference;
 }
 
+class TimerFormController {
+  constructor() {
+    this.value = "";
+
+    NEW_TIMER_INPUT.addEventListener("keydown", this.handleChange);
+    ADD_TIMER_FORM.addEventListener("submit", this.handleSubmit);
+    MODAL_OVERLAY.addEventListener("click", this.handleClose);
+    OPEN_FORM_BUTTON.addEventListener("click", this.open);
+  }
+
+  get formattedValue() {
+    return `${this.value.charAt(0) || "_"}${this.value.charAt(1) || "_"}:${
+      this.value.charAt(2) || "_"
+    }${this.value.charAt(3) || "_"}`;
+  }
+
+  get isValid() {
+    return this.value.length === 4;
+  }
+
+  open = () => {
+    MODAL_OVERLAY.classList.add("visible");
+    NEW_TIMER_INPUT.value = this.formattedValue;
+    NEW_TIMER_INPUT.focus();
+  };
+
+  close = () => MODAL_OVERLAY.classList.remove("visible");
+
+  handleChange = (e) => {
+    const { key } = e;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (key === "Backspace") {
+      this.value = this.value.substring(0, this.value.length - 1);
+    } else if (key === "Enter") {
+      if (this.isValid) {
+        return this.handleSubmit();
+      }
+    }
+
+    if (this.isValid) {
+      return;
+    }
+
+    if (!Number.isNaN(Number(key))) {
+      this.value += key;
+    }
+
+    NEW_TIMER_INPUT.value = this.formattedValue;
+    ADD_TIMER_BUTTON.disabled = !this.isValid;
+  };
+
+  handleSubmit = (e) => {
+    e && e.preventDefault();
+
+    const minutes = Number(this.value.slice(0, 2));
+    const seconds = Number(this.value.slice(2, 4));
+
+    controller.add(minutes * 60 + seconds);
+
+    this.value = "";
+    ADD_TIMER_BUTTON.disabled = true;
+
+    this.close();
+  };
+
+  handleClose = (e) => {
+    if (e.target === e.currentTarget) {
+      this.close();
+    }
+  };
+}
+
 const controller = new Controller();
+
+const timerFormController = new TimerFormController();
 
 controller.add(20);
 controller.add(60);
@@ -319,3 +418,11 @@ controller.add(60);
 START_BUTTON.addEventListener("click", controller.start);
 STOP_BUTTON.addEventListener("click", controller.stop);
 LOOP_CHECKBOX.addEventListener("click", controller.toggleLoop);
+
+// document.addEventListener("visibilitychange", () => {
+//   if (document.hidden) {
+//     console.log("doc hidden");
+//   } else {
+//     console.log("doc visible");
+//   }
+// });
