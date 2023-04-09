@@ -16,6 +16,23 @@ const ADD_TIMER_BUTTON = document.getElementById("add-timer-button");
 const NEW_TIMER_INPUT = document.getElementById("new-timer-input");
 const OPEN_FORM_BUTTON = document.getElementById("open-form-button");
 
+Array.prototype.shuffle = function () {
+  let currentIndex = this.length,
+    randomIndex;
+
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    [this[currentIndex], this[randomIndex]] = [
+      this[randomIndex],
+      this[currentIndex],
+    ];
+  }
+
+  return this;
+};
+
 const infinite = function* () {
   let i = 1;
 
@@ -30,19 +47,24 @@ const getId = () => {
   return idGenerator.next().value;
 };
 
-// https://coolors.co/palette/f94144-f3722c-f8961e-f9844a-f9c74f-90be6d-43aa8b-4d908e-577590-277da1
 const COLORS = [
-  "#f94144",
-  "#f3722c",
-  "#f9844a",
-  "#f8961e",
-  "#f9c74f",
-  "#90be6d",
-  "#43aa8b",
-  "#4d908e",
-  "#577590",
-  "#277da1",
-];
+  "#00d1ab",
+  "#ce4d81",
+  "#ffd85c",
+  "#0065a8",
+  "#ff6360",
+  "#08c501",
+  "#6788ca",
+  "#c4fc02",
+  "#159861",
+  "#00b5bd",
+  "#ff5420",
+  "#70d3b9",
+  "#ff4363",
+  "#d8ff8f",
+  "#ffbd52",
+  "#da6873",
+].shuffle();
 
 let wakeLock = null;
 
@@ -127,7 +149,7 @@ class Queue {
 
 class Controller {
   constructor() {
-    this.counter = 0;
+    this.activeTimer = 0;
     this.interval = undefined;
     this.queue = new Queue(LOOP_CHECKBOX.checked);
 
@@ -137,12 +159,21 @@ class Controller {
   }
 
   get hasFinished() {
-    return this.counter === this.queue.current.time;
+    return this.activeTimer === this.queue.current.time;
   }
 
   add = (time) => {
     this.queue.add(time);
     this.renderTimers();
+
+    if (this.queue.size === 1) {
+      this.updateCounter(0);
+      this.render();
+    }
+
+    if (this.queue.size === COLORS.length) {
+      OPEN_FORM_BUTTON.disabled = true;
+    }
 
     START_BUTTON.disabled = this.queue.size === 0;
   };
@@ -151,10 +182,20 @@ class Controller {
     this.queue.remove(timerId);
     this.renderTimers();
 
-    START_BUTTON.disabled = this.queue.size === 0;
+    if (this.queue.size < COLORS.length) {
+      OPEN_FORM_BUTTON.disabled = false;
+    }
+
+    if (this.queue.size === 0) {
+      START_BUTTON.disabled = true;
+    } else {
+      this.updateCounter(0);
+      this.render();
+    }
   };
 
   start = () => {
+    this.playBell();
     this.next();
     this.render();
     this.interval = setInterval(this.handleInterval, SECOND);
@@ -195,7 +236,7 @@ class Controller {
       this.updateCounter();
 
       if (this.hasFinished) {
-        this.playSound();
+        this.playBell();
       }
     }
 
@@ -217,18 +258,18 @@ class Controller {
 
   updateCounter = (value) => {
     if (value === 0) {
-      this.counter = 0;
+      this.activeTimer = 0;
     } else {
-      this.counter++;
+      this.activeTimer++;
     }
   };
 
-  playSound = () => new Audio(SOUND_URL).play();
+  playBell = () => new Audio(SOUND_URL).play();
 
   toggleLoop = () => this.queue.toggleLoop();
 
   render = () => {
-    COUNTER.innerHTML = this.queue.current.getCounter(this.counter);
+    COUNTER.innerHTML = this.queue.current.getCounter(this.activeTimer);
 
     if (this.queue.current.moreThanOneMinute) {
       COUNTER.classList.add("over-one-minute");
@@ -243,8 +284,8 @@ class Controller {
   };
 }
 
+/** Creates an Timer instance with time in seconds */
 class Timer {
-  /** Creates an Timer instance with time in seconds */
   constructor(time) {
     this.id = getId();
     this.time = time;
@@ -276,17 +317,13 @@ class Timer {
   }
 
   render = (index) => {
-    const template = document.createElement("div");
+    const template = document.createElement("timer-item");
 
-    template.classList.add("timer");
-    template.setAttribute("data-id", this.id);
-    template.innerHTML = `<span style="background-color:${COLORS[index]}">${
-      index + 1
-    }</span>
-    <span class="interval">${this.toString()}</span>
-    <button class="button icon-button" onclick="controller.remove(${
-      this.id
-    })">x</button>`;
+    template.color = COLORS[index];
+    template.id = this.id;
+    template.index = index;
+    template.time = this.toString();
+    template.onRemove = controller.remove;
 
     return template;
   };
@@ -326,20 +363,25 @@ class TimerFormController {
   constructor() {
     this.value = "";
 
-    NEW_TIMER_INPUT.addEventListener("keydown", this.handleChange);
+    this.unidentifiedKey = false;
+
+    NEW_TIMER_INPUT.addEventListener("keydown", this.handleKeydown);
+    NEW_TIMER_INPUT.addEventListener("keyup", this.handleKeyup);
     ADD_TIMER_FORM.addEventListener("submit", this.handleSubmit);
     MODAL_OVERLAY.addEventListener("click", this.handleClose);
     OPEN_FORM_BUTTON.addEventListener("click", this.open);
   }
 
   get formattedValue() {
-    return `${this.value.charAt(0) || "_"}${this.value.charAt(1) || "_"}:${
-      this.value.charAt(2) || "_"
-    }${this.value.charAt(3) || "_"}`;
+    const value = this.value.padStart(4, "0");
+
+    return `${value.charAt(0)}${value.charAt(1)}:${value.charAt(
+      2
+    )}${value.charAt(3)}`;
   }
 
   get isValid() {
-    return this.value.length === 4;
+    return this.value.length > 1;
   }
 
   open = () => {
@@ -350,11 +392,22 @@ class TimerFormController {
 
   close = () => MODAL_OVERLAY.classList.remove("visible");
 
-  handleChange = (e) => {
+  handleKeydown = (e) => {
     const { key } = e;
+
+    if (key === "ArrowRight" || key === "ArrowLeft") {
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
+
+    if (key === "Unidentified") {
+      this.unidentifiedKey = true;
+      return;
+    }
+
+    this.unidentifiedKey = false;
 
     if (key === "Backspace") {
       this.value = this.value.substring(0, this.value.length - 1);
@@ -364,13 +417,31 @@ class TimerFormController {
       }
     }
 
-    if (this.isValid) {
+    if (key === "0" && this.value.length === 0) {
       return;
     }
 
-    if (!Number.isNaN(Number(key))) {
-      this.value += key;
+    if (this.value.length === 4) {
+      return;
     }
+
+    this.updateValue(this.value + key);
+  };
+
+  handleKeyup = (e) => {
+    if (this.unidentifiedKey) {
+      let value = NEW_TIMER_INPUT.value.replace(":", "");
+
+      while (value.length > 0 && value.charAt(0) === "0") {
+        value = value.slice(1);
+      }
+
+      this.updateValue(value);
+    }
+  };
+
+  updateValue = (value) => {
+    this.value = isNaN(value) ? this.value : value;
 
     NEW_TIMER_INPUT.value = this.formattedValue;
     ADD_TIMER_BUTTON.disabled = !this.isValid;
@@ -379,8 +450,10 @@ class TimerFormController {
   handleSubmit = (e) => {
     e && e.preventDefault();
 
-    const minutes = Number(this.value.slice(0, 2));
-    const seconds = Number(this.value.slice(2, 4));
+    const value = this.value.padStart(4, "0");
+
+    const minutes = Number(value.slice(0, 2));
+    const seconds = Number(value.slice(2, 4));
 
     controller.add(minutes * 60 + seconds);
 
