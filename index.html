@@ -1,7 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/common.css" />
+    <link
+      rel="stylesheet"
+      href="css/light.css"
+      media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+    />
+    <link
+      rel="stylesheet"
+      href="css/dark.css"
+      media="(prefers-color-scheme: dark)"
+    />
     <title>Timers</title>
     <meta
       name="description"
@@ -11,6 +21,7 @@
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico" />
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#495057" />
+
     <!-- ios support -->
     <link rel="apple-touch-icon" href="images/icons/icon-72x72.png" />
     <link rel="apple-touch-icon" href="images/icons/icon-96x96.png" />
@@ -75,5 +86,6 @@
     </main>
 
     <script src="js/script.js"></script>
+    <script src="js/components.js"></script>
   </body>
 </html>
