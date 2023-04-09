@@ -4,30 +4,26 @@
 :root {
   --doc-height: 100%;
 
-  /* Colors */
-  /* pallette: https://coolors.co/palette/f8f9fa-e9ecef-dee2e6-ced4da-adb5bd-6c757d-495057-343a40-212529 */
-  --black: #212529;
-  --dark-gray: #495057;
-  --medium-gray: #adb5bd;
-  --light-gray: #dee2e6;
-  --lighter-gray: #e9ecef;
-  --white: #f8f9fa;
+  --color-gray-100: #f8f9fa;
+  --color-gray-200: #e9ecef;
+  --color-gray-300: #dee2e6;
+  --color-gray-400: #adb5bd;
+  --color-gray-500: #7b838a;
+  --color-gray-600: #495057;
+  --color-gray-700: #353b40;
+  --color-gray-800: #212529;
 
-  /* --color-primary: #3A0CA3;
-  --color-primary-light: #e9dfff;
-  --color-primary-dark: #270870; */
+  --color-white: var(--color-gray-100);
+  --color-black: var(--color-gray-800);
 
-  /* --color-primary: var(--dark-gray);
-  --color-primary-light: var(--light-gray);
-  --color-primary-dark: var(--black); */
-
-  /* --color-primary: #532b88;
-  --color-primary-light: #c8b1e4;
-  --color-primary-dark: #2f184b; */
-
-  --color-primary: #5b7065;
-  --color-primary-light: #c9d1c8;
-  --color-primary-dark: #304040;
+  --color-primary-100: #ede6ff;
+  --color-primary-200: #d0c5e5;
+  --color-primary-300: #b3a4cc;
+  --color-primary-400: #9683b2;
+  --color-primary-500: #786399;
+  --color-primary-600: #5b427f;
+  --color-primary-700: #3e2166;
+  --color-primary-800: #21004c;
 
   --font-family-primary: Lato, sans-serif;
   --font-family-monospace: 'Space Mono', monospace;
@@ -48,13 +44,14 @@ body {
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
-  color: var(--black);
+  color: var(--text-color);
   font-family: var(--font-family-primary);
+  font-weight: 300;
 }
 
 body {
   align-items: center;
-  background-color: var(--dark-gray);
+  background-color: var(--color-gray-600);
   display: flex;
   justify-content: center;
   margin: 0;
@@ -62,9 +59,9 @@ body {
 }
 
 main {
-  background-color: var(--white);
+  background-color: var(--card-background);
   border-radius: 8px;
-  box-shadow: 2px 2px 8px var(--black);
+  box-shadow: 2px 2px 8px var(--color-shadow-enabled);
   display: flex;
   flex-direction: column;
   height: max-content;
@@ -112,7 +109,6 @@ h1 {
   aspect-ratio: 1 / 1;
   width: 100%;
   border-radius: 50%;
-  /* border: 1px solid var(--black); */
   font-family: var(--font-family-monospace);
   font-size: 4rem;
   display: flex;
@@ -140,8 +136,6 @@ h1 {
 }
 
 .toggle {
-  --color-toggle-off: var(--medium-gray);
-  --color-toggle-on: var(--color-primary);
   position: relative;
   user-select: none;
 }
@@ -172,7 +166,7 @@ h1 {
 
 .toggle .indicator::after {
   aspect-ratio: 1 / 1;
-  background-color: var(--white);
+  background-color: var(--color-indicator);
   border-radius: 100%;
   content: "";
   display: block;
@@ -187,7 +181,7 @@ h1 {
 }
 
 .toggle input:not(:checked) ~ label .indicator::after {
-  background-color: var(--white);
+  /* background-color: var(--color-indica); */
   transform: translateX(0);
 }
 
@@ -210,16 +204,16 @@ h1 {
 }
 
 .button {
-  background-color: var(--color-primary);
+  background-color: var(--color-surface-enabled);
   border-radius: 12px;
   border: none;
-  color: var(--white);
+  color: var(--button-text-color);
   font-size: 1rem;
   letter-spacing: 1px;
   padding: 0.6rem 2rem;
   text-transform: uppercase;
   user-select: none;
-  transition: box-shadow 300ms ease-out, transform 100ms ease-out;
+  transition: background-color 200ms ease-out, box-shadow 200ms ease-out, transform 100ms ease-out;
   transform: scale(1);
 }
 
@@ -237,12 +231,14 @@ h1 {
 }
 
 .button:disabled {
-  background-color: var(--color-primary-light);
+  background-color: var(--color-surface-disabled);
+  color: var(--text-color-inverted-disabled);
   pointer-events: none;
 }
 
-.button:not(:disabled):not(.icon-button):hover {
-  box-shadow: 2px 2px 8px var(--medium-gray);
+.button:not(:disabled):hover {
+  background-color: var(--color-surface-hover);
+  box-shadow: 2px 2px 8px var(--color-shadow-hover);
 }
 
 .button:not(:disabled):active {
@@ -259,7 +255,6 @@ h1 {
     flex-grow: 1;
   }
 }
-
 
 .timers-container {
   display: flex;
@@ -280,7 +275,7 @@ h1 {
   align-items: center;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  color: white;
+  color: var(--text-color-inverted);
   display: flex;
   font-size: 1.8rem;
   font-weight: 600;
@@ -313,7 +308,7 @@ h1 {
 }
 
 .modal-overlay::before {
-  background: var(--black);
+  background: var(--modal-overlay);
   bottom: 0;
   content: "";
   display: block;
@@ -325,11 +320,12 @@ h1 {
 }
 
 .modal-overlay .modal {
-  background-color: var(--white);
+  background-color: var(--card-background);
+  box-shadow: 2px 2px 8px var(--color-shadow-enabled);
   padding: 2rem;
   position: relative;
   z-index: 4;
-  border-radius: var(8px);
+  border-radius: 8px;
 }
 
 form {
@@ -339,7 +335,8 @@ form {
 }
 
 form input {
-  color: var(--black);
+  background-color: var(--text-color-inverted);
+  color: var(--text-color);
   font-size: 2.5rem;
   font-family: var(--font-family-monospace);
   min-width: 0;
